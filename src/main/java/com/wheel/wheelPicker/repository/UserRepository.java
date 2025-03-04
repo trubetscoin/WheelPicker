@@ -3,6 +3,10 @@ package com.wheel.wheelPicker.repository;
 import com.wheel.wheelPicker.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<User, Integer> {
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
     // custom queries
+
+    Optional<User> findByEmail(String email);
 }
