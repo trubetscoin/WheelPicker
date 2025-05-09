@@ -74,7 +74,6 @@ public class JwtUtility {
         );
     }
 
-    // doesn't work currently
     public void deleteRefreshToken(String token) {
         refreshTokenRepository.deleteByToken(token);
     }

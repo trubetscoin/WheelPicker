@@ -8,6 +8,8 @@ import com.wheel.wheelPicker.dto.UserLoginDto;
 import com.wheel.wheelPicker.model.User;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -43,9 +45,8 @@ public class AuthService {
         return new TokenPairDto(accessToken, refreshToken);
     }
 
-    public void logoutUser(String authHeader) {
-        if (!authHeader.startsWith("Bearer ")) throw new BadCredentialsException("Invalid token format");
-        String token = authHeader.substring(7);
-        jwtUtility.deleteRefreshToken(token); // doesn't work currently
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void logoutUser(String token) {
+        jwtUtility.deleteRefreshToken(token);
     }
 }

@@ -48,8 +48,8 @@ public class AuthController {
 
     // doesn't work currently
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@RequestHeader("Authorization") String authHeader) {
-        authService.logoutUser(authHeader);
+    public ResponseEntity<?> logoutUser(@CookieValue(name = "refreshToken") String token) {
+        authService.logoutUser(token);
         return ResponseEntity.ok("Logged out successfully");
     }
 
