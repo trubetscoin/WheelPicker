@@ -45,8 +45,7 @@ public class AuthController {
         setRefreshTokenCookie(response, jwtTokenPair.getRefreshToken());
         return ResponseEntity.ok(jwtTokenPair.getAccessToken());
     }
-
-    // doesn't work currently
+    
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@CookieValue(name = "refreshToken") String token) {
         authService.logoutUser(token);
