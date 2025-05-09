@@ -22,14 +22,20 @@
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="role" type="TINYINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_enabled" type="TINYINT(1)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
-        <createTable tableName="wheelConfiguration">
+        <createTable tableName="wheel_configuration">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
-            <column name="userId" type="BIGINT">
+            <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="json" type="TEXT">
@@ -37,11 +43,11 @@
             </column>
 
         </createTable>
-        <addForeignKeyConstraint baseTableName="wheelConfiguration"
-                                 baseColumnNames="userId"
+        <addForeignKeyConstraint baseTableName="wheel_configuration"
+                                 baseColumnNames="user_id"
                                  referencedTableName="user"
                                  referencedColumnNames="id"
-                                 constraintName="fk_wheelConfiguration_User"
+                                 constraintName="fk_wheel_configuration_user"
                                  onDelete="CASCADE"
         />
 

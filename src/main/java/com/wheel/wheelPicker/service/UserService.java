@@ -1,41 +1,63 @@
 package com.wheel.wheelPicker.service;
 
-import com.wheel.wheelPicker.dto.UserCreateDto;
-import com.wheel.wheelPicker.dto.UserDto;
+import com.wheel.wheelPicker.dto.UserRegisterDto;
 import com.wheel.wheelPicker.dto.UserLoginDto;
-import com.wheel.wheelPicker.mapper.UserMapper;
+import com.wheel.wheelPicker.exceptionHandling.exception.CredentialsAlreadyExistsException;
+import com.wheel.wheelPicker.model.Role;
 import com.wheel.wheelPicker.model.User;
 import com.wheel.wheelPicker.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.authenticationManager = authenticationManager;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public UserDto createUser(UserCreateDto userCreateDto) {
+    public User registerUser(UserRegisterDto userRegisterDto) {
+        if (userRepository.findByEmail(userRegisterDto.getEmail()).isPresent()) {
+            throw new CredentialsAlreadyExistsException("email", userRegisterDto.getEmail());
+        } else if (userRepository.findByUsername(userRegisterDto.getUsername()).isPresent()) {
+            throw new CredentialsAlreadyExistsException("username", userRegisterDto.getUsername());
+        }
+
         User user = new User(
-                userCreateDto.getUsername(),
-                userCreateDto.getEmail(),
-                passwordEncoder.encode(userCreateDto.getPassword())
+                userRegisterDto.getUsername(),
+                userRegisterDto.getEmail(),
+                passwordEncoder.encode(userRegisterDto.getPassword()),
+                Role.ROLE_USER
         );
 
-        User savedUser = userRepository.save(user);
-        return UserMapper.userToDto(savedUser); // Convert saved entity to UserDto
+        return userRepository.save(user);
     }
 
-    public boolean LoginUser(UserLoginDto userLoginDto) {
-        User user = userRepository.findByEmail(userLoginDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public User loginUser(UserLoginDto userLoginDto) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    userLoginDto.getEmail(),
+                    userLoginDto.getPassword()
+            ));
 
-        return passwordEncoder.matches(userLoginDto.getPassword(), user.getPassword());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            return (User) authentication.getPrincipal(); // User Entity implements UserDetails
+        }
+        catch (AuthenticationException e) {
+            throw new BadCredentialsException("Invalid login or password");
+        }
     }
+
 }
