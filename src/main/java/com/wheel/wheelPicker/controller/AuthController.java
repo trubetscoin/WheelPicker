@@ -1,9 +1,6 @@
 package com.wheel.wheelPicker.controller;
 
-import com.wheel.wheelPicker.dto.JwtWithExpiryDto;
-import com.wheel.wheelPicker.dto.TokenPairDto;
-import com.wheel.wheelPicker.dto.UserRegisterDto;
-import com.wheel.wheelPicker.dto.UserLoginDto;
+import com.wheel.wheelPicker.dto.*;
 import com.wheel.wheelPicker.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -34,29 +32,58 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody @Valid UserRegisterDto userRegisterDto, HttpServletResponse response) {
         TokenPairDto jwtTokenPair = authService.register(userRegisterDto);
         setRefreshTokenCookie(response, jwtTokenPair.getRefreshToken());
+
+        ApiSuccessResponseDto<Map<String, String>> success = new ApiSuccessResponseDto<>(
+                HttpStatus.CREATED.value(),
+                "Successfully created the user",
+                Map.of("accessToken", jwtTokenPair.getAccessToken())
+        );
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(jwtTokenPair.getAccessToken());
+                .body(success);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody @Valid UserLoginDto userLoginDto, HttpServletResponse response) {
         TokenPairDto jwtTokenPair = authService.login(userLoginDto);
         setRefreshTokenCookie(response, jwtTokenPair.getRefreshToken());
-        return ResponseEntity.ok(jwtTokenPair.getAccessToken());
+
+        ApiSuccessResponseDto<Map<String, String>> success = new ApiSuccessResponseDto<>(
+                HttpStatus.OK.value(),
+                "Successfully logged in",
+                Map.of("accessToken", jwtTokenPair.getAccessToken())
+        );
+
+        return ResponseEntity.ok(success);
     }
     
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(@CookieValue(name = "refreshToken") String token) {
+    public ResponseEntity<?> logoutUser(@CookieValue(name = "refreshToken") String token, HttpServletResponse response) {
         authService.logoutUser(token);
-        return ResponseEntity.ok("Logged out successfully");
+        clearRefreshTokenCookie(response);
+
+        ApiSuccessResponseDto<String> success = new ApiSuccessResponseDto<>(
+                HttpStatus.OK.value(),
+                "Logged out successfully",
+                null
+        );
+
+        return ResponseEntity.ok(success);
     }
 
     @PostMapping("/refresh")
     ResponseEntity<?> getNewAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = getRefreshTokenCookie(request);
         String newAccessToken = authService.getNewAccessToken(refreshToken);
-        return ResponseEntity.ok(newAccessToken);
+
+        ApiSuccessResponseDto<Map<String, String>> success = new ApiSuccessResponseDto<>(
+                HttpStatus.OK.value(),
+                "Successfully refresh the token",
+                Map.of("accessToken", newAccessToken)
+        );
+
+        return ResponseEntity.ok(success);
     }
 
     public void setRefreshTokenCookie(HttpServletResponse response, JwtWithExpiryDto token){
@@ -80,6 +107,18 @@ public class AuthController {
             }
         }
         return null;
+    }
+
+    public void clearRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
 }
