@@ -1,0 +1,24 @@
+name: Test App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose and Run Tests
+        run: docker-compose --env-file backend/.env.test.docker -f docker-compose.test.yml up --build -d
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker-compose --env-file backend/.env.test.docker -f docker-compose.test.yml down -v

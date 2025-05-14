@@ -1,0 +1,38 @@
+# Used to test the full app.
+# The key difference between prod setup is .env files and Dockerfiles used
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: wheelpicker-backend-test
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./backend/.env.test.docker
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:8.0
+    restart: always
+    container_name: wheelpicker-database-test
+
+    ports:
+      - "3307:3306"
+    env_file:
+      - ./backend/.env.test.docker
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - test_db_data:/var/lib/mysql
+
+volumes:
+  test_db_data:

@@ -1,0 +1,21 @@
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+/node_modules/
+/dist/
+/build/
+
+*.sublime*
+
+psd
+thumb
+sketch
+
+# Webstorm
+.idea/
+
+package-lock.json
