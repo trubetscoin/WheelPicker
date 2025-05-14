@@ -42,6 +42,11 @@ public class JwtUtilityIntegrationTest {
     }
 
     @Test
+    void shouldFailForGithubActions() {
+        assertTrue(false);
+    }
+
+    @Test
     void shouldGenerateAndSaveRefreshToken() {
         User user = new User();
         user.setEmail("test@example.com");
