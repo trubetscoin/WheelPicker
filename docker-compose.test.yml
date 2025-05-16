@@ -6,33 +6,33 @@ services:
       context: ./backend
       dockerfile: Dockerfile.test
     container_name: wheelpicker-backend-test
-    ports:
-      - "8081:8080"
     env_file:
       - ./backend/.env.test.docker
+    ports:
+      - "8081:8080"
     depends_on:
       database:
         condition: service_healthy
 
   database:
-    image: mysql:8.0
+    image: postgres:17.5
     restart: always
     container_name: wheelpicker-database-test
-
-    ports:
-      - "3307:3306"
     env_file:
       - ./backend/.env.test.docker
+    ports:
+      - "5433:${DB_PORT}"
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: [ "CMD", "pg_isready"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
     volumes:
-      - test_db_data:/var/lib/mysql
+      - test_db_data:/var/lib/postgresql/data
 
 volumes:
   test_db_data:

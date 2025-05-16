@@ -5,12 +5,12 @@
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
     <preConditions>
-        <dbms type="mysql"/>
+        <dbms type="postgresql"/>
     </preConditions>
 
     <changeSet id="default-schema-creation" author="Dmitri">
-        <createTable tableName="user">
-            <column name="id" type="BIGINT" autoIncrement="true">
+        <createTable tableName="users">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="username" type="VARCHAR(255)">
@@ -22,20 +22,20 @@
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="role" type="TINYINT">
+            <column name="role" type="SMALLINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_enabled" type="TINYINT(1)">
+            <column name="is_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
         </createTable>
 
         <createTable tableName="wheel_configuration">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
-            <column name="user_id" type="BIGINT">
+            <column name="user_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
             <column name="json" type="TEXT">
@@ -45,9 +45,9 @@
         </createTable>
         <addForeignKeyConstraint baseTableName="wheel_configuration"
                                  baseColumnNames="user_id"
-                                 referencedTableName="user"
+                                 referencedTableName="users"
                                  referencedColumnNames="id"
-                                 constraintName="fk_wheel_configuration_user"
+                                 constraintName="fk_wheel_configuration_users"
                                  onDelete="CASCADE"
         />
 

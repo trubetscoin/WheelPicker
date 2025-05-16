@@ -1,3 +1,4 @@
+create_db.bat
 .commands
 .env.test.local
 .env.dev

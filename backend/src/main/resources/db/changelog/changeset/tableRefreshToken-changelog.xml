@@ -5,31 +5,31 @@
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
     <preConditions>
-        <dbms type="mysql"/>
+        <dbms type="postgresql"/>
     </preConditions>
 
     <changeSet id="tableRefreshToken" author="Dmitri">
         <createTable tableName="refresh_token">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
-            <column name="user_id" type="BIGINT">
+            <column name="user_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
             <column name="token" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="expiry_date" type="DATETIME">
+            <column name="expiry_date" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
 
         </createTable>
         <addForeignKeyConstraint baseTableName="refresh_token"
                                  baseColumnNames="user_id"
-                                 referencedTableName="user"
+                                 referencedTableName="users"
                                  referencedColumnNames="id"
-                                 constraintName="fk_refresh_token_user"
+                                 constraintName="fk_refresh_token_users"
                                  onDelete="CASCADE"
         />
 
