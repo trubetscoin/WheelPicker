@@ -8,4 +8,4 @@ RUN mvn dependency:resolve
 
 EXPOSE 8080
 
-ENTRYPOINT ["mvn", "test"]
+CMD mvn test
