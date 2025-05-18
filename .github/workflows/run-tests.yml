@@ -26,4 +26,6 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: mvn clean test
+        run: |
+          cd backend
+          mvn clean test
