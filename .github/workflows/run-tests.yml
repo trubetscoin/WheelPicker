@@ -22,8 +22,7 @@ jobs:
           java-version: '17'
 
       - name: Load backend environment variables
-        run: export $(cat backend/.env.test | grep -v '^#' | xargs)
-        shell: bash
+        run: grep -v '^#' backend/.env.test | grep -v '^$' >> $GITHUB_ENV
 
       - name: Run Tests
         run: |
