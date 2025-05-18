@@ -1,6 +1,5 @@
 create_db.bat
 .commands
-.env.test.local
 .env.dev
 .env.prod
 HELP.md

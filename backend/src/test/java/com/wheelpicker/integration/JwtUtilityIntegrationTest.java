@@ -1,5 +1,6 @@
 package com.wheelpicker.integration;
 
+import com.wheelpicker.BaseDatabaseTest;
 import com.wheelpicker.component.JwtUtility;
 import com.wheelpicker.dto.JwtWithExpiryDto;
 import com.wheelpicker.model.RefreshToken;
@@ -19,15 +20,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
 @Transactional
-public class JwtUtilityIntegrationTest {
+public class JwtUtilityIntegrationTest extends BaseDatabaseTest{
 
-    @Autowired
-    private JwtUtility jwtUtility;
+    private final JwtUtility jwtUtility;
 
     @MockBean
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    public JwtUtilityIntegrationTest(JwtUtility jwtUtility) {
+        this.jwtUtility = jwtUtility;
+    }
 
     @Test
     void shouldGenerateAccessTokenAndExtractClaims() {

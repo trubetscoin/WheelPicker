@@ -1,5 +1,6 @@
 package com.wheelpicker.integration;
 
+import com.wheelpicker.BaseDatabaseTest;
 import com.wheelpicker.dto.UserLoginDto;
 import com.wheelpicker.dto.UserRegisterDto;
 import com.wheelpicker.exceptionHandling.exception.CredentialsAlreadyExistsException;
@@ -12,23 +13,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 @Transactional
-public class UserServiceIntegrationTest {
+public class UserServiceIntegrationTest extends BaseDatabaseTest {
+
+    private final UserService userService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public UserServiceIntegrationTest(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Test
     void shouldRegisterUserSuccessfully() {
