@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+// Basically CORS filter with extended error message
 @Component
 public class OriginCheckFilter extends OncePerRequestFilter {
 

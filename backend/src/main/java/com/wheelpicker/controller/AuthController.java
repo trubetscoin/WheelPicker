@@ -2,8 +2,6 @@ package com.wheelpicker.controller;
 
 import com.wheelpicker.dto.*;
 import com.wheelpicker.service.AuthService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 
 
 @RestController
@@ -60,7 +57,7 @@ public class AuthController {
     
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(@CookieValue(name = "refreshToken") String token, HttpServletResponse response) {
-        authService.logoutUser(token);
+        authService.logout(token);
         clearRefreshTokenCookie(response);
 
         ApiSuccessResponseDto<String> success = new ApiSuccessResponseDto<>(
@@ -73,49 +70,34 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    ResponseEntity<?> getNewAccessToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = getRefreshTokenCookie(request);
-        String newAccessToken = authService.getNewAccessToken(refreshToken);
+    ResponseEntity<?> getNewAccessToken(@CookieValue(name = "refreshToken") String token) {
+        String newAccessToken = authService.getNewAccessToken(token);
 
         ApiSuccessResponseDto<Map<String, String>> success = new ApiSuccessResponseDto<>(
                 HttpStatus.OK.value(),
-                "Successfully refresh the token",
+                "Successfully refreshed the token",
                 Map.of("accessToken", newAccessToken)
         );
 
         return ResponseEntity.ok(success);
     }
 
-    public void setRefreshTokenCookie(HttpServletResponse response, JwtWithExpiryDto token){
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", token.getToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.between(LocalDateTime.now(), token.getExpiryDate()))
-                .sameSite("None") // OriginCheckFilter checks the origin. No security concerns.
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-    }
-
-    public String getRefreshTokenCookie(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (Objects.equals(cookie.getName(), "refreshToken")) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
+    public void setRefreshTokenCookie(HttpServletResponse response, JwtWithExpiryDto token) {
+        Duration duration = Duration.between(LocalDateTime.now(), token.getExpiryDate());
+        addRefreshTokenCookie(response, token.getToken(), duration);
     }
 
     public void clearRefreshTokenCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+        addRefreshTokenCookie(response, "", Duration.ZERO);
+    }
+
+    private void addRefreshTokenCookie(HttpServletResponse response, String token, Duration maxAge){
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(0)
-                .sameSite("None")
+                .maxAge(maxAge)
+                .sameSite("None") // OriginCheckFilter checks the origin. No security concerns.
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

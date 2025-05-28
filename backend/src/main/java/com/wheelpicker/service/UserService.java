@@ -1,13 +1,15 @@
 package com.wheelpicker.service;
 
-import com.wheelpicker.dto.UserRegisterDto;
 import com.wheelpicker.dto.UserLoginDto;
+import com.wheelpicker.dto.UserRegisterDto;
 import com.wheelpicker.exceptionHandling.exception.CredentialsAlreadyExistsException;
+import com.wheelpicker.exceptionHandling.exception.UserBannedException;
 import com.wheelpicker.model.Role;
 import com.wheelpicker.model.User;
 import com.wheelpicker.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -54,6 +56,9 @@ public class UserService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             return (User) authentication.getPrincipal(); // User Entity implements UserDetails
+        }
+        catch (DisabledException e) {
+            throw new UserBannedException();
         }
         catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid login or password");

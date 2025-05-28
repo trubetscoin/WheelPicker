@@ -1,8 +1,10 @@
 package com.wheelpicker.security.filter;
 
 import com.wheelpicker.component.JwtUtility;
+import com.wheelpicker.exceptionHandling.exception.HeaderException;
 import com.wheelpicker.service.MyUserDetailsService;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,13 +33,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        try {
-            String bearerToken = request.getHeader(TOKEN_HEADER);
-            if (bearerToken == null || !bearerToken.startsWith(TOKEN_PREFIX)) {
-                chain.doFilter(request, response);
-                return;
-            }
+        String bearerToken = request.getHeader(TOKEN_HEADER);
+        if (bearerToken == null || !bearerToken.startsWith(TOKEN_PREFIX)) {
+            throw new HeaderException("Invalid JWT header");
+        }
 
+        try {
             String token = bearerToken.substring(TOKEN_PREFIX.length());
             Claims claims = jwtUtility.extractAccessClaims(token);
             String email = claims.getSubject();

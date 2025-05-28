@@ -10,8 +10,8 @@ public class MainController {
         return "home";
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "Test Page";
+    @GetMapping("/protected")
+    public String protectedPage() {
+        return "Protected Page";
     }
 }

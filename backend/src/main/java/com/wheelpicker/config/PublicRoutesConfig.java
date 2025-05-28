@@ -8,7 +8,8 @@ import java.util.Set;
 public class PublicRoutesConfig {
     private static final Set<String> publicRoutes = Set.of(
             "/",
-            "/api/auth/*"
+            "/api/auth/*",
+            "/error"
     );
 
     public static String[] getPublicRoutes() {

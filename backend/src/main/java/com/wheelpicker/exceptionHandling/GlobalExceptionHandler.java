@@ -2,15 +2,16 @@ package com.wheelpicker.exceptionHandling;
 
 import com.wheelpicker.exceptionHandling.exception.CredentialsAlreadyExistsException;
 import com.wheelpicker.exceptionHandling.exception.ForbiddenOriginException;
+import com.wheelpicker.exceptionHandling.exception.HeaderException;
 import com.wheelpicker.exceptionHandling.exception.UserBannedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -73,7 +74,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleForbiddenOrigin(ForbiddenOriginException e) {
         return ProblemDetailFactory.create(
                 HttpStatus.FORBIDDEN,
-                "Prohibited Origin",
+                "Forbidden Origin",
                 e.getMessage(),
                 "FORBIDDEN_ORIGIN"
         );
@@ -99,6 +100,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(HeaderException.class)
+    public ProblemDetail handleHeaderException(HeaderException e) {
+        return ProblemDetailFactory.create(
+                HttpStatus.UNAUTHORIZED,
+                "Invalid Header",
+                e.getMessage(),
+                "REQUEST_FAILURE"
+        );
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(AccessDeniedException e) {
         return ProblemDetailFactory.create(
@@ -119,4 +130,13 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ProblemDetail handleMissingCookie(MissingRequestCookieException e) {
+        return ProblemDetailFactory.create(
+                HttpStatus.UNAUTHORIZED,
+                "Missing Cookie",
+                e.getMessage(),
+                "REQUEST_FAILURE"
+        );
+    }
 }

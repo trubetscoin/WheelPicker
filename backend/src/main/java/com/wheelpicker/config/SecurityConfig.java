@@ -7,6 +7,7 @@ import com.wheelpicker.security.filter.OriginCheckFilter;
 import com.wheelpicker.service.MyUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -31,13 +32,14 @@ public class SecurityConfig {
 
     private final MyUserDetailsService myUserDetailsService;
 
-     public SecurityConfig(MyUserDetailsService myUserDetailsService) {
-         this.myUserDetailsService = myUserDetailsService;
-     }
+    public SecurityConfig(MyUserDetailsService myUserDetailsService) {
+        this.myUserDetailsService = myUserDetailsService;
+    }
 
     @Bean
     @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicFilterChain(HttpSecurity http,
+                                                 ExceptionHandlerFilter exceptionHandlerFilter) throws Exception {
         CommonSecurityConfig.disableCommonFilters(http);
 
         http
@@ -54,13 +56,16 @@ public class SecurityConfig {
                 .servletApi(api -> api.disable())
                 .headers(headers -> headers.disable())
                 .cors(cors -> cors.disable())
+                .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class) // Global exception handler
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
         return http.build();
     }
 
+    @Profile({"prod", "dev", "integration"})
     @Bean
     @Order(2)
-    public SecurityFilterChain protectedFilterChain(HttpSecurity http, ExceptionHandlerFilter exceptionHandlerFilter,
+    public SecurityFilterChain protectedFilterChain(HttpSecurity http,
+                                                    ExceptionHandlerFilter exceptionHandlerFilter,
                                                     OriginCheckFilter originCheckFilter,
                                                     JwtFilter jwtFilter,
                                                     IsUserBannedFilter isUserBannedFilter) throws Exception {
@@ -72,6 +77,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // JWT auth filter
                 .addFilterAfter(isUserBannedFilter, SecurityContextHolderAwareRequestFilter.class) // should be applied only after this filter as .getPrincipal() is used and it's configured in the following filter
                 .authorizeHttpRequests(requests -> requests.anyRequest().authenticated());
+
         return http.build();
     }
 

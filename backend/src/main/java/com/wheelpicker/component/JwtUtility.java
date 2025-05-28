@@ -1,16 +1,12 @@
 package com.wheelpicker.component;
 
 import com.wheelpicker.dto.JwtWithExpiryDto;
-import com.wheelpicker.model.RefreshToken;
-import com.wheelpicker.model.User;
-import com.wheelpicker.repository.RefreshTokenRepository;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -19,28 +15,32 @@ import java.util.Date;
 
 @Component
 public class JwtUtility {
-    private final RefreshTokenRepository refreshTokenRepository;
 
-    private final String ACCESS_SECRET_KEY;
-    private final String REFRESH_SECRET_KEY;
-    private final Long ACCESS_SECRET_EXPIRY = 1000L * 60 * 15; // 15 minutes
-    private final Long REFRESH_SECRET_EXPIRY = 1000L * 60 * 60; // 1 hour
+    private final String accessSecretKey;
+    private final Long accessSecretExpiry;
+    private final String refreshSecretKey;
+    private final Long refreshSecretExpiry;
 
-    public JwtUtility(RefreshTokenRepository refreshTokenRepository, @Value("${jwtUtility.accessTokenSecret}") String accessTokenSecret, @Value("${jwtUtility.refreshTokenSecret}") String refreshTokenSecret) {
-        this.refreshTokenRepository = refreshTokenRepository;
-        ACCESS_SECRET_KEY = accessTokenSecret;
-        REFRESH_SECRET_KEY = refreshTokenSecret;
+    public JwtUtility(@Value("${jwtUtility.accessSecretKey}") String accessSecretKey,
+                      @Value("${jwtUtility.accessTokenExpiryMs}") Long accessSecretExpiry,
+                      @Value("${jwtUtility.refreshSecretKey}") String refreshSecretKey,
+                      @Value("${jwtUtility.refreshTokenExpiryMs}") Long refreshSecretExpiry)
+    {
+        this.accessSecretKey = accessSecretKey;
+        this.accessSecretExpiry = accessSecretExpiry;
+        this.refreshSecretKey = refreshSecretKey;
+        this.refreshSecretExpiry = refreshSecretExpiry;
     }
 
     public String generateAccessToken(String email) {
-        Date expiryDate = new Date(System.currentTimeMillis() + ACCESS_SECRET_EXPIRY);
-        return generateToken(email, expiryDate, ACCESS_SECRET_KEY);
+        Date expiryDate = new Date(System.currentTimeMillis() + accessSecretExpiry);
+        return generateToken(email, expiryDate, accessSecretKey);
     }
 
     public JwtWithExpiryDto generateRefreshToken(String email) {
-        Date expiryDate = new Date(System.currentTimeMillis() + REFRESH_SECRET_EXPIRY);
+        Date expiryDate = new Date(System.currentTimeMillis() + refreshSecretExpiry);
         LocalDateTime localExpiry = new java.sql.Timestamp(expiryDate.getTime()).toLocalDateTime();
-        String token = generateToken(email, expiryDate, REFRESH_SECRET_KEY);
+        String token = generateToken(email, expiryDate, refreshSecretKey);
         return new JwtWithExpiryDto(token, localExpiry);
     }
 
@@ -55,34 +55,15 @@ public class JwtUtility {
 
     public Claims extractAccessClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey(ACCESS_SECRET_KEY))
+                .setSigningKey(getSigningKey(accessSecretKey))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    public RefreshToken getRefreshTokenFromDb(String token) {
-        if (token == null) throw new BadCredentialsException("Refresh token is missing");
-        return refreshTokenRepository.findByToken(token).orElseThrow(() -> new BadCredentialsException("Refresh token not recognized"));
-    }
-
-    public void saveRefreshToken(JwtWithExpiryDto token, User user) {
-        refreshTokenRepository.save(
-                new RefreshToken(
-                        token.getToken(),
-                        token.getExpiryDate(),
-                        user
-                )
-        );
-    }
-
-    public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
-    }
-
     public String refreshAccessToken(String refreshToken) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey(REFRESH_SECRET_KEY))
+                .setSigningKey(getSigningKey(refreshSecretKey))
                 .build()
                 .parseClaimsJws(refreshToken)
                 .getBody();

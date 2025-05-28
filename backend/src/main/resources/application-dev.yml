@@ -7,7 +7,6 @@ spring:
     hikari:
       connection-timeout: 30000
       initialization-fail-timeout: 60000
-      connection-test-query: SELECT 1
   jpa:
     properties:
       hibernate:
@@ -18,9 +17,16 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
 
+server:
+  error:
+    whitelabel:
+      enabled: false
+
 jwtUtility:
-  accessTokenSecret: ${JWT_ACCESS_SECRET_KEY}
-  refreshTokenSecret: ${JWT_REFRESH_SECRET_KEY}
+  accessSecretKey: ${JWT_ACCESS_SECRET_KEY}
+  accessTokenExpiryMs: ${JWT_ACCESS_SECRET_EXPIRY_MS}
+  refreshSecretKey: ${JWT_REFRESH_SECRET_KEY}
+  refreshTokenExpiryMs: ${JWT_REFRESH_SECRET_EXPIRY_MS}
 
 logging:
   exception-conversion-word: "%ex{short}"
