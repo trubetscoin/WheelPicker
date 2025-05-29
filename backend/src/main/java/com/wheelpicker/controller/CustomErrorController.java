@@ -23,9 +23,10 @@ public class CustomErrorController implements ErrorController {
 
         String errorCode = null;
 
+        // Spring default 404 ERROR_EXCEPTION is null. Hence, this is required
         if (httpStatus.isSameCodeAs(HttpStatus.NOT_FOUND)) {
-            message = "Page not found";
-            errorCode = "PAGE_NOT_FOUND";
+            message = "Requested resource could not be found";
+            errorCode = "RESOURCE_NOT_FOUND";
         }
 
         ProblemDetail problem = ProblemDetailFactory.create(

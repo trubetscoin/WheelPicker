@@ -1,9 +1,6 @@
 package com.wheelpicker.exceptionHandling;
 
-import com.wheelpicker.exceptionHandling.exception.CredentialsAlreadyExistsException;
-import com.wheelpicker.exceptionHandling.exception.ForbiddenOriginException;
-import com.wheelpicker.exceptionHandling.exception.HeaderException;
-import com.wheelpicker.exceptionHandling.exception.UserBannedException;
+import com.wheelpicker.exceptionHandling.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -137,6 +134,16 @@ public class GlobalExceptionHandler {
                 "Missing Cookie",
                 e.getMessage(),
                 "REQUEST_FAILURE"
+        );
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ProblemDetail handleUserNotFound(UserNotFoundException e) {
+        return ProblemDetailFactory.create(
+                HttpStatus.NOT_FOUND,
+                "User could not be found",
+                e.getMessage(),
+                "RESOURCE_NOT_FOUND"
         );
     }
 }
