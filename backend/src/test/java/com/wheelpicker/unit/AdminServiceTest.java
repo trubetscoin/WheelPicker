@@ -9,7 +9,7 @@ import com.wheelpicker.service.AdminService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -18,12 +18,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTest {
 
-    @Mock
+    // Spy instead of Mock, because Mock can't mock "default" methods
+    @Spy
     private UserRepository userRepository;
 
     @InjectMocks
@@ -36,16 +38,16 @@ public class AdminServiceTest {
 
         User user1 = new User(
                 "testuser",
-                "email@example.com",
+                "email1@example.com",
                 "password",
-                Role.ROLE_USER
+                Role.USER
         );
 
         User user2 = new User(
                 "test",
-                "email@example.com",
+                "email2@example.com",
                 "password",
-                Role.ROLE_USER
+                Role.USER
         );
 
         when(userRepository.findByEmailOrUsername(query)).thenReturn(List.of(user1, user2));
@@ -64,6 +66,42 @@ public class AdminServiceTest {
 
         verify(userRepository).findByEmailOrUsername(query);
 
+    }
+
+    @Test
+    void findUsers_shouldReturnAllUsersWhenQueryIsNull() {
+
+        String query = null;
+
+        User user1 = new User(
+                "testuser",
+                "email1@example.com",
+                "password",
+                Role.USER
+        );
+
+        User user2 = new User(
+                "anotheruser",
+                "email2@example.com",
+                "password",
+                Role.USER
+        );
+
+        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+
+        List<UserDto> result = adminService.findUsers(query);
+
+        assertNotNull(result);
+
+        List<String> usernames = result.stream()
+                .map(UserDto::getUsername)
+                .toList();
+
+        assertEquals(2, result.size());
+        assertTrue(usernames.contains("testuser"));
+        assertTrue(usernames.contains("anotheruser"));
+
+        verify(userRepository).findAll();
     }
 
     @Test
@@ -86,7 +124,7 @@ public class AdminServiceTest {
                 "testuser",
                 "email@example.com",
                 "password123",
-                Role.ROLE_USER
+                Role.USER
         );
 
         UUID mockedUserId = UUID.randomUUID();
@@ -109,7 +147,7 @@ public class AdminServiceTest {
                 "testuser",
                 "email@example.com",
                 "password123",
-                Role.ROLE_USER
+                Role.USER
         );
 
         UUID invalidUserId = UUID.randomUUID();
@@ -128,8 +166,10 @@ public class AdminServiceTest {
                 "testuser",
                 "email@example.com",
                 "password123",
-                Role.ROLE_USER
+                Role.USER
         );
+
+        mockedUser.setIsEnabled(false);
 
         UUID mockedUserId = UUID.randomUUID();
 
@@ -147,11 +187,12 @@ public class AdminServiceTest {
     @Test
     void unbanUser_shouldThrowWhenNoUserUUIDProvided() {
 
+
         User mockedUser = new User(
                 "testuser",
                 "email@example.com",
                 "password123",
-                Role.ROLE_USER
+                Role.USER
         );
 
         UUID invalidUserId = UUID.randomUUID();
@@ -163,3 +204,6 @@ public class AdminServiceTest {
         verify(userRepository, never()).save(any(User.class));
     }
 }
+
+
+

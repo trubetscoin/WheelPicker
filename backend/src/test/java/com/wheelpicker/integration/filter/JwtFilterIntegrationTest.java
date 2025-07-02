@@ -9,10 +9,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.given;
@@ -20,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ActiveProfiles("test")
 class JwtFilterIntegrationTest extends BaseNoDatabaseTest {
 
     @Autowired
@@ -41,7 +44,7 @@ class JwtFilterIntegrationTest extends BaseNoDatabaseTest {
         User mockUser = new User();
         mockUser.setEmail(email);
         mockUser.setPassword("pass");
-        mockUser.setRole(Role.ROLE_USER);
+        mockUser.setRoles(Set.of(Role.USER));
         mockUser.setIsEnabled(true);
 
         given(userRepository.findByEmail(email)).willReturn(Optional.of(mockUser));

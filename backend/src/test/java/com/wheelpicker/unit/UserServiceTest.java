@@ -59,7 +59,7 @@ public class UserServiceTest {
         assertEquals(registerDto.getUsername(), savedUser.getUsername());
         assertEquals(registerDto.getEmail(), savedUser.getEmail());
         assertEquals("encodedPassword", savedUser.getPassword());
-        assertEquals(Role.ROLE_USER, savedUser.getRole());
+        assertTrue(savedUser.getRoles().contains(Role.USER));
 
         verify(userRepository).findByEmail(registerDto.getEmail());
         verify(userRepository).findByUsername(registerDto.getUsername());

@@ -13,12 +13,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class BaseDatabaseTest {
 
+    // Hardcoded values due to the requirement of initializing before spring context
     @Container
     private static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER =
             new PostgreSQLContainer<>("postgres:17.5")
-                    .withDatabaseName(System.getenv("DB_NAME"))
-                    .withUsername(System.getenv("DB_USERNAME"))
-                    .withPassword(System.getenv("DB_PASSWORD"));
+                    .withDatabaseName("wheelpicker")
+                    .withUsername("postgres")
+                    .withPassword("SUPERUSER-PASS");
 
     @DynamicPropertySource
     static void configureDatabaseProperties(DynamicPropertyRegistry registry) {

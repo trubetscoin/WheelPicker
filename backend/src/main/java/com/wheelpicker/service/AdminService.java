@@ -1,7 +1,9 @@
 package com.wheelpicker.service;
 
 import com.wheelpicker.dto.UserDto;
-import com.wheelpicker.exceptionHandling.exception.UserNotFoundException;
+import com.wheelpicker.exceptionHandling.exception.UserBanConflictException.BanUnbanType;
+import com.wheelpicker.exceptionHandling.exception.UserBanConflictException.UserBanConflictException;
+import com.wheelpicker.model.Role;
 import com.wheelpicker.model.User;
 import com.wheelpicker.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,13 @@ public class AdminService {
     }
 
     public List<UserDto> findUsers(String query) {
+        if (query == null) {
+            return userRepository.findAll()
+                    .stream()
+                    .map(UserDto::new)
+                    .toList();
+        }
+
         return userRepository.findByEmailOrUsername(query)
                 .stream()
                 .map(UserDto::new)
@@ -28,7 +37,10 @@ public class AdminService {
 
     @Transactional
     public String banUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        User user = userRepository.findByIdOrThrow(userId);
+        if (user.getRoles().contains(Role.ADMIN)) throw new UserBanConflictException(BanUnbanType.BAN, "User is an admin and cannot be banned");
+        if (!user.isEnabled()) throw new UserBanConflictException(BanUnbanType.BAN, "User is already banned");
+
         user.setIsEnabled(false);
         userRepository.save(user);
         return user.getEmail();
@@ -36,7 +48,10 @@ public class AdminService {
 
     @Transactional
     public String unbanUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        User user = userRepository.findByIdOrThrow(userId);
+        if (user.getRoles().contains(Role.ADMIN)) throw new UserBanConflictException(BanUnbanType.UNBAN, "User is an admin and cannot be unbanned");
+        if (user.isEnabled()) throw new UserBanConflictException(BanUnbanType.UNBAN, "User is already unbanned");
+
         user.setIsEnabled(true);
         userRepository.save(user);
         return user.getEmail();

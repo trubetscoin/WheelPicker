@@ -5,6 +5,7 @@ import com.wheelpicker.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Set;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -13,15 +14,15 @@ public class UserDto {
     private final UUID id;
     private final String username;
     private final String email;
-    private final Role role;
-    private final Boolean Enabled;
+    private final Set<Role> roles;
+    private final Boolean isEnabled;
 
     public UserDto(User user) {
         this (
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole(),
+                user.getRoles(),
                 user.getIsEnabled()
         );
     }

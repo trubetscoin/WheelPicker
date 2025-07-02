@@ -1,8 +1,9 @@
 create_db.bat
 notes.md
-.env.dev
-.env.prod
-HELP.md
+
+src/main/resources/application-dev-secrets.yml
+src/main/resources/application-prod-secrets.yml
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

@@ -5,8 +5,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: wheelpicker-backend
-    env_file:
-      - ./backend/.env.prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8080:8080"
     depends_on:
@@ -17,8 +17,6 @@ services:
     image: postgres:17.5
     restart: always
     container_name: wheelpicker-database
-    env_file:
-      - ./backend/.env.prod
     ports:
       - "5432:5432"
     environment:
@@ -26,7 +24,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
+      test: ["CMD-SHELL", "PGPASSWORD=$${POSTGRES_PASSWORD} psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c 'SELECT 1;' "]
       interval: 10s
       timeout: 5s
       retries: 3

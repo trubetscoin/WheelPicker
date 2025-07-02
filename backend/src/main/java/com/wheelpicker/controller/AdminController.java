@@ -5,12 +5,14 @@ import com.wheelpicker.dto.UserDto;
 import com.wheelpicker.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/admin")
 public class AdminController {
 
@@ -21,7 +23,7 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(@RequestParam(required = true) String query) {
+    public ResponseEntity<?> getUsers(@RequestParam(required = false) String query) {
         List<UserDto> users = adminService.findUsers(query);
 
         ApiSuccessResponseDto<List<UserDto>> success = new ApiSuccessResponseDto<>(

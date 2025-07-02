@@ -6,9 +6,6 @@ spring:
       initialization-fail-timeout: 60000
       max-lifetime: 30000
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
     open-in-view: false
@@ -20,9 +17,12 @@ server:
     whitelabel:
       enabled: false
 
+# Must be BASE64 format
 jwtUtility:
-  accessSecretKey: ${JWT_ACCESS_SECRET_KEY}
-  accessTokenExpiryMs: ${JWT_ACCESS_SECRET_EXPIRY_MS}
-  refreshSecretKey: ${JWT_REFRESH_SECRET_KEY}
-  refreshTokenExpiryMs: ${JWT_REFRESH_SECRET_EXPIRY_MS}
+  accessSecretKey: VGhlIGRlZmF1bHQgdW5zZWN1cmUgc3RyaW5nIHVzZWQgZm9yIC5lbnYgY29uZmlnIGFzIEpXVF9BQ0NFU1NfU0VDUkVUX0tFWQ==
+  # 15 min
+  accessTokenExpiryMs: 900000
 
+  refreshSecretKey: VGhlIGRlZmF1bHQgdW5zZWN1cmUgc3RyaW5nIHVzZWQgZm9yIC5lbnYgY29uZmlnIGFzIEpXVF9SRUZSRVNIX1NFQ1JFVF9LRVk=
+  # 1 hour
+  refreshTokenExpiryMs: 3600000

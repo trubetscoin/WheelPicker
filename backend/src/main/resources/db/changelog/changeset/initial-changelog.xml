@@ -22,34 +22,31 @@
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="role" type="SMALLINT">
-                <constraints nullable="false"/>
-            </column>
             <column name="is_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
         </createTable>
 
-        <createTable tableName="wheel_configuration">
-            <column name="id" type="UUID">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-
+        <createTable tableName="user_roles">
             <column name="user_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
-            <column name="json" type="TEXT">
+            <column name="role" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-
         </createTable>
-        <addForeignKeyConstraint baseTableName="wheel_configuration"
-                                 baseColumnNames="user_id"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"
-                                 constraintName="fk_wheel_configuration_users"
-                                 onDelete="CASCADE"
+        <addForeignKeyConstraint
+                baseTableName="user_roles"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_user_roles_users"
+                onDelete="CASCADE"
         />
+        <addUniqueConstraint
+                tableName="user_roles"
+                columnNames="user_id, role"
+                constraintName="uc_user_role_unique"/>
 
     </changeSet>
 

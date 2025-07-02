@@ -15,7 +15,9 @@ public class WheelConfiguration {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String json;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,19 +29,22 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final MyUserDetailsService myUserDetailsService;
+    public final CommonSecurityConfig commonSecurityConfig;
 
-    public SecurityConfig(MyUserDetailsService myUserDetailsService) {
+    public SecurityConfig(MyUserDetailsService myUserDetailsService, CommonSecurityConfig commonSecurityConfig) {
         this.myUserDetailsService = myUserDetailsService;
+        this.commonSecurityConfig = commonSecurityConfig;
     }
 
     @Bean
     @Order(1)
     public SecurityFilterChain publicFilterChain(HttpSecurity http,
                                                  ExceptionHandlerFilter exceptionHandlerFilter) throws Exception {
-        CommonSecurityConfig.disableCommonFilters(http);
+        commonSecurityConfig.applyCommonFilters(http);
 
         http
                 // Allow access to public pages with no additional checks or filters applied
@@ -56,7 +60,6 @@ public class SecurityConfig {
                 .servletApi(api -> api.disable())
                 .headers(headers -> headers.disable())
                 .cors(cors -> cors.disable())
-                .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class) // Global exception handler
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
         return http.build();
     }
@@ -69,10 +72,9 @@ public class SecurityConfig {
                                                     OriginCheckFilter originCheckFilter,
                                                     JwtFilter jwtFilter,
                                                     IsUserBannedFilter isUserBannedFilter) throws Exception {
-        CommonSecurityConfig.disableCommonFilters(http);
+        commonSecurityConfig.applyCommonFilters(http);
         http
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class) // Global exception handler
                 .addFilterBefore(originCheckFilter, UsernamePasswordAuthenticationFilter.class ) // Validates request's origin to protect from CSRF attacks
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // JWT auth filter
                 .addFilterAfter(isUserBannedFilter, SecurityContextHolderAwareRequestFilter.class) // should be applied only after this filter as .getPrincipal() is used and it's configured in the following filter

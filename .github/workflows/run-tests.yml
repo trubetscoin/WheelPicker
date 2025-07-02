@@ -21,10 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Load backend environment variables
-        run: grep -v '^#' backend/.env.test | grep -v '^$' >> $GITHUB_ENV
-
       - name: Run Tests
         run: |
           cd backend
-          mvn clean test
+          mvn clean test -D"spring-boot.run.profiles"=test

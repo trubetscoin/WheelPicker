@@ -2,6 +2,7 @@ package com.wheelpicker.integration;
 
 import com.wheelpicker.BaseDatabaseTest;
 import com.wheelpicker.controller.AuthController;
+import com.wheelpicker.dto.ApiSuccessResponseDto;
 import com.wheelpicker.dto.UserRegisterDto;
 import com.wheelpicker.repository.UserRepository;
 import com.wheelpicker.service.AuthService;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -59,22 +61,25 @@ public class AuthControllerIntegrationTest extends BaseDatabaseTest {
                 "username", USERNAME
         );
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<ApiSuccessResponseDto<Map<String, String>>> response = restTemplate.exchange(
                 ENDPOINT + "/register",
-                requestBody,
-                Map.class
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<ApiSuccessResponseDto<Map<String, String>>>() {}
         );
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        Map body = response.getBody();
+        ApiSuccessResponseDto<Map<String, String>> body = response.getBody();
 
-        assertEquals(201, body.get("status"));
-        assertEquals("Successfully created the user", body.get("message"));
-        assertNotNull(((Map) body.get("data")).get("accessToken"));
+        assertEquals(201, body.getStatus());
+        assertEquals("Successfully created the user", body.getMessage());
+        assertNotNull(body.getData().get("accessToken"));
 
-        assertTrue(response.getHeaders().get(HttpHeaders.SET_COOKIE)
-                .stream().anyMatch(cookie -> cookie.startsWith("refreshToken=")));
+        assertTrue(
+                response.getHeaders().get(HttpHeaders.SET_COOKIE)
+                .stream().anyMatch(cookie -> cookie.startsWith("refreshToken="))
+        );
     }
 
     @Test
@@ -83,19 +88,20 @@ public class AuthControllerIntegrationTest extends BaseDatabaseTest {
                 "email", EMAIL
         );
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 ENDPOINT + "/register",
-                requestBody,
-                Map.class
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<ProblemDetail>() {}
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        Map body = response.getBody();
+        ProblemDetail body = response.getBody();
 
-        assertEquals(400, body.get("status"));
-        assertEquals("One or more fields are invalid", body.get("detail"));
-        assertEquals("VALIDATION_FAILURE", body.get("errorCode"));
+        assertEquals(400, body.getStatus());
+        assertEquals("One or more fields are invalid", body.getDetail());
+        assertEquals("VALIDATION_FAILURE", body.getProperties().get(("errorCode")));
     }
 
     @Test
@@ -112,17 +118,18 @@ public class AuthControllerIntegrationTest extends BaseDatabaseTest {
                 "password", PASSWORD
         );
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<ApiSuccessResponseDto<Map<String, String>>> response = restTemplate.exchange(
                 ENDPOINT + "/login",
-                requestBody,
-                Map.class
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<ApiSuccessResponseDto<Map<String, String>>>() {}
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Map body = response.getBody();
-        assertEquals(200, body.get("status"));
-        assertEquals("Successfully logged in", body.get("message"));
-        assertNotNull(((Map) body.get("data")).get("accessToken"));
+        ApiSuccessResponseDto<Map<String, String>> body = response.getBody();
+        assertEquals(200, body.getStatus());
+        assertEquals("Successfully logged in", body.getMessage());
+        assertNotNull(body.getData().get("accessToken"));
 
         assertTrue(response.getHeaders().get(HttpHeaders.SET_COOKIE)
                 .stream().anyMatch(cookie -> cookie.startsWith("refreshToken=")));
@@ -141,54 +148,51 @@ public class AuthControllerIntegrationTest extends BaseDatabaseTest {
                 "email", EMAIL
         );
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        ResponseEntity<ProblemDetail> response = restTemplate.exchange(
                 ENDPOINT + "/login",
-                requestBody,
-                Map.class
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<ProblemDetail>() {}
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        Map body = response.getBody();
+        ProblemDetail body = response.getBody();
 
-        assertEquals(400, body.get("status"));
-        assertEquals("One or more fields are invalid", body.get("detail"));
-        assertEquals("VALIDATION_FAILURE", body.get("errorCode"));
+        assertEquals(400, body.getStatus());
+        assertEquals("One or more fields are invalid", body.getDetail());
+        assertEquals("VALIDATION_FAILURE", body.getProperties().get("errorCode"));
     }
 
     @Test
     public void refresh_ReturnsOk() {
-        Map<String, String> requestBody = Map.of(
-                "email", EMAIL,
-                "password", PASSWORD,
-                "username", USERNAME
-        );
-
-        String refreshToken = authService
-                .register(new UserRegisterDto(
+        String refreshToken = authService.register(
+                new UserRegisterDto(
                         USERNAME,
                         EMAIL,
-                        PASSWORD))
+                        PASSWORD)
+                )
                 .getRefreshToken()
                 .getToken();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "refreshToken=" + refreshToken);
 
-        HttpEntity<?> request = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<ApiSuccessResponseDto<Map<String, String>>> response = restTemplate.exchange(
                 ENDPOINT + "/refresh",
                 HttpMethod.POST,
-                request,
-                Map.class
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<ApiSuccessResponseDto<Map<String, String>>>() {}
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Map body = response.getBody();
-        assertEquals(200, body.get("status"));
-        assertEquals("Successfully refreshed the token", body.get("message"));
-        assertNotNull(((Map) body.get("data")).get("accessToken"));
+        assertNotNull(response.getBody());
+
+        ApiSuccessResponseDto<Map<String, String>> body = response.getBody();
+
+        assertEquals(200, body.getStatus());
+        assertEquals("Successfully refreshed the token", body.getMessage());
+        assertNotNull(body.getData().get("accessToken"));
     }
 
     @Test
@@ -204,18 +208,18 @@ public class AuthControllerIntegrationTest extends BaseDatabaseTest {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, "refreshToken=" + refreshToken);
 
-        HttpEntity<?> request = new HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
+        ResponseEntity<ApiSuccessResponseDto<Map<String, String>>> response = restTemplate.exchange(
                 ENDPOINT + "/logout",
                 HttpMethod.POST,
-                request,
-                Map.class
+                new HttpEntity<>(headers),
+                new ParameterizedTypeReference<ApiSuccessResponseDto<Map<String, String>>>() {}
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Map body = response.getBody();
-        assertEquals(200, body.get("status"));
-        assertEquals("Logged out successfully", body.get("message"));
+        assertNotNull(response.getBody());
+        ApiSuccessResponseDto<Map<String, String>> body = response.getBody();
+
+        assertEquals(200, body.getStatus());
+        assertEquals("Logged out successfully", body.getMessage());
     }
 }

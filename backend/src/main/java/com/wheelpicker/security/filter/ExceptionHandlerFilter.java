@@ -30,11 +30,12 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
 
         try {
             filterChain.doFilter(request, response);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             ModelAndView mw = exceptionResolver.resolveException(request, response, null, e);
             if (mw == null) {
                 request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, e.getCause());
                 request.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                request.setAttribute(RequestDispatcher.ERROR_MESSAGE, e.getMessage());
                 request.getRequestDispatcher("/error").forward(request, response);
             }
         }

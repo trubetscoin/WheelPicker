@@ -1,6 +1,7 @@
 package com.wheelpicker.exceptionHandling;
 
 import com.wheelpicker.exceptionHandling.exception.*;
+import com.wheelpicker.exceptionHandling.exception.UserBanConflictException.UserBanConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -9,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestCookieException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -123,7 +125,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.FORBIDDEN,
                 "You are banned",
                 "You were banned by the administrator",
-                "BANNED"
+                "USER_BANNED"
         );
     }
 
@@ -144,6 +146,26 @@ public class GlobalExceptionHandler {
                 "User could not be found",
                 e.getMessage(),
                 "RESOURCE_NOT_FOUND"
+        );
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingRequestParameter(MissingServletRequestParameterException e) {
+        return ProblemDetailFactory.create(
+                HttpStatus.BAD_REQUEST,
+                "Request is missing parameter",
+                e.getMessage(),
+                "REQUEST_FAILURE"
+        );
+    }
+
+    @ExceptionHandler(UserBanConflictException.class)
+    public ProblemDetail handleUserBanConflict(UserBanConflictException e) {
+        return ProblemDetailFactory.create(
+                HttpStatus.CONFLICT,
+                e.getTitle(),
+                e.getMessage(),
+                "BAN_CONFLICT"
         );
     }
 }

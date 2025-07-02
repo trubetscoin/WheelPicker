@@ -5,7 +5,7 @@ COPY src src
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jdk-jammy
-WORKDIR /wheelpicker
+WORKDIR /app
 COPY --from=build /wheelpicker/target/wheelpicker-*.jar wheelpicker.jar
 
 EXPOSE 8080

@@ -40,7 +40,7 @@ public class UserService {
                 userRegisterDto.getUsername(),
                 userRegisterDto.getEmail(),
                 passwordEncoder.encode(userRegisterDto.getPassword()),
-                Role.ROLE_USER
+                Role.USER
         );
 
         return userRepository.save(user);

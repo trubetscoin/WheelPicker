@@ -16,11 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
+@ActiveProfiles("test")
 public class AuthServiceIntegrationTest extends BaseDatabaseTest {
 
     @Autowired
@@ -53,7 +55,8 @@ public class AuthServiceIntegrationTest extends BaseDatabaseTest {
         assertEquals("registeruser@example.com", jwtUtility.extractAccessClaims(accessToken).getSubject());
         assertEquals("registeruser@example.com", registeredUser.getEmail());
         assertTrue(passwordEncoder.matches("password123", registeredUser.getPassword()));
-        assertEquals(Role.ROLE_USER, registeredUser.getRole());
+        assertTrue(registeredUser.getRoles().contains(Role.USER));
+
     }
 
     @Test
